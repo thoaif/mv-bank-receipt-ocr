@@ -1,3 +1,4 @@
+import copy
 from typing import Tuple, List, Iterable, Union
 
 from PIL import Image
@@ -91,26 +92,47 @@ def scale_by_width(image: np.ndarray, width: int) -> np.ndarray:
     return cv2.resize(image, (width, new_height))
 
 
+def clear_lines(line: str):
+    new_line = line.split('\n')
+    return ' '.join(new_line)
+
+
 def remove_and_strip(field: str, line: str) -> str:
-    start_index = line.find(field)
-    new_line = line[start_index + len(field):]
-    return new_line.replace(field, '').strip()
+    new_line = line[len(field):].strip()
+    return new_line
 
 
 def process_amount(predictions, field: str, line: str):
     amount = remove_and_strip(field, line)
-    predictions['Currency'], predictions[field] = amount.split(' ', 1)
+    if ' ' not in line:
+        predictions[field] = amount
+    else:
+        splits = amount.split(' ', 1)
+        predictions['Currency'] = splits[0].strip()
+        predictions[field] = splits[1].strip()
 
 
 def process_to(predictions: dict, field: str, line: str):
     to = remove_and_strip(field, line)
-    splits = to.split('\n', 1)
-    predictions[field] = {'Name': splits[0], 'Account': splits[1]}
+    if '\n' in to:
+        splits = to.split('\n', 1)
+        predictions[field] = {'Name': splits[0].strip(), 'Account': splits[1].strip()}
+    else:
+        if to.isnumeric() or 'XXXX' in to:
+            predictions[field] = {'Account': to}
+        else:
+            predictions[field] = {'Name': to}
 
 
 def process_normal(predictions: dict, field: str, line: str):
     value = remove_and_strip(field, line)
+    value = clear_lines(value)
     predictions[field] = value
+
+
+def find_field(fields: Iterable, string: str):
+    generator = (field for field in fields if string.startswith(field))
+    return next(generator, None)
 
 
 processing_map = {f: process_normal for f in FIELDS}
@@ -133,11 +155,16 @@ def predict(image: np.ndarray) -> dict:
     rows = get_rows(image)
 
     predictions = {}
+    remaining_fields = copy.copy(FIELDS)
 
-    for field, row in zip(FIELDS, rows):
+    for row in rows:
         # predict row text
         text = pytesseract.image_to_string(Image.fromarray(row)).strip()
-        processing_map[field](predictions, field, text)
+        text = text.strip()
+        field = find_field(remaining_fields, text)
+        if field is not None:
+            processing_map[field](predictions, field, text)
+            remaining_fields.remove(field)
 
     return predictions
 
@@ -145,4 +172,3 @@ def predict(image: np.ndarray) -> dict:
 def run_ocr(image_path: str) -> dict:
     image = cv2.imread(str(image_path))
     return predict(image)
-
