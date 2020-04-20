@@ -37,7 +37,7 @@ is expected to have an out put of
 ```
 
 ### Endpoints
-The only endpoint is `POST /ocr` remains as the endpoint, and requires a file field, with an image
+The only endpoint is `POST /ocr`, and requires a file field, with an image
 file in .png, .jpg or .jpeg extension
 
 
