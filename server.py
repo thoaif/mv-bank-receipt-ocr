@@ -28,12 +28,12 @@ def upload_file():
     if request.method == 'POST':
 
         if 'file' not in request.files:
-            abort(400, no_file)
+            return no_file, 400
 
         file = request.files['file']
 
         if file.filename == '':
-            abort(400, no_selected_file)
+            return no_selected_file, 400
 
         extension = get_extension(file.filename)
 
@@ -47,13 +47,13 @@ def upload_file():
 
             # if no fields - prediction failed
             if len(resp) == 0:
-                abort(400, failed_ocr)
+                return failed_ocr, 400
 
             # clear uploaded image
             clear_file(file_path)
             return jsonify(resp)
         else:
-            abort(400, wrong_extension)
+            return wrong_extension, 400
 
 
 if __name__ == "__main__":
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
         args = {
             "host": "0.0.0.0",
-            "port": 3000
+            "port": 5000
         }
 
         if certs_found:
