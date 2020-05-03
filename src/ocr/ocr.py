@@ -14,8 +14,6 @@ def predict(image: np.ndarray) -> dict:
     main function for predicting
     """
     image = standardize(image)
-    height_, width_ = image.shape[:2]
-    print('{} {}'.format(width_, height_))
 
     # get row segments
     rows = get_rows(image)

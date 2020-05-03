@@ -49,6 +49,13 @@ my-app/
   requirements.txt
   vevn/
   src/
+    ocr/
+        preprocess/
+        text_processing/
+        ocr.py
+    responses.py
+    temp_clearer.py
+    utils.py
   cert/
 ```
 
