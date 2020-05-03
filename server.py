@@ -3,7 +3,7 @@ from threading import Thread
 import settings as S
 from flask_cors import CORS
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, jsonify
 
 from src.ocr import run_ocr
 from src.temp_clearer import clear_temp
